@@ -1,4 +1,4 @@
-package regeliv.java_hell.java_hell;
+package java_hell;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -6,8 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class JavaHellApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+  @Test
+  void placeholderTest() {
+  }
 
 }
