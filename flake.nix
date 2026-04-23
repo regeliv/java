@@ -13,13 +13,21 @@
         inherit system;
 
       };
+
+      # Apparently, jdtls by default uses some old java, this is
+      # a fix for that
+      jdtlsJava25 = pkgs.jdt-language-server.overrideAttrs (old: {
+        postPatch = (old.postPatch or "") + ''
+          sed -i -E "s|java_executable = '/nix/store/[^']*-openjdk-[^']*/bin/java'|java_executable = '${pkgs.openjdk25}/bin/java'|" bin/jdtls.py
+        '';
+      });
     in
     {
       devShells.${system}.default = pkgs.mkShell {
         packages = [
           pkgs.openjdk25
           pkgs.maven
-          pkgs.jdt-language-server
+          jdtlsJava25
           pkgs.postgresql
         ];
 

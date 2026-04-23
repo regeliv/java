@@ -1,3 +1,8 @@
 .direnv/
 .postgres/
 logfile
+target/
+.classpath
+.factorypath
+.project
+.settings/
