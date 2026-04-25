@@ -16,21 +16,21 @@ import jakarta.validation.Valid;
 @Tag(name = "Users")
 @RequestMapping("/api/users")
 class UserController {
-  private final UserRepository userRepository;
+  private final UserService userService;
 
-  UserController(UserRepository userRepository) {
-    this.userRepository = userRepository;
+  UserController(UserService userService) {
+    this.userService = userService;
   }
 
   @GetMapping
   @Operation(summary = "Return a list of all users in the database")
   List<User> all() {
-    return userRepository.findAll();
+    return userService.all();
   }
 
   @PostMapping
   @Operation(summary = "Add a user to the database")
   User createUser(@Valid @RequestBody User user) {
-    return userRepository.save(user);
+    return userService.createUser(user);
   }
 }
