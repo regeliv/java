@@ -3,11 +3,9 @@ package java_hell;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 
-import jakarta.transaction.Transactional;
-
-@SpringBootTest
+@DataJpaTest
 class ProjectUserTests {
 
   @Autowired
@@ -17,7 +15,6 @@ class ProjectUserTests {
   UserRepository userRepository;
 
   @Test
-  @Transactional
   void addManyUsersToOneProject() {
     Project proj = new Project();
     proj.setName("Java Hell");
@@ -43,7 +40,6 @@ class ProjectUserTests {
   }
 
   @Test
-  @Transactional
   void addOneUserToManyProjects() {
     Project fooProj = new Project();
     fooProj.setName("Foo");
@@ -70,7 +66,6 @@ class ProjectUserTests {
   }
 
   @Test
-  @Transactional
   void removeUserFromProject() {
     Project proj = new Project();
     proj.setName("Java Hell");
