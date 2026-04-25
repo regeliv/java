@@ -10,8 +10,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import jakarta.transaction.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -21,6 +24,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerTests {
   @Autowired
   UserRepository userRepository;
+
+  @Autowired
+  ProjectRepository projectRepository;
 
   @Autowired
   MockMvc mockMvc;
@@ -75,6 +81,78 @@ class UserControllerTests {
 
     assertEquals(2, userRepository.count());
 
+  }
+
+  @Test
+  void updateUser() throws Exception {
+    User user = new User();
+    user.setUsername("user1");
+
+    User savedUser = userRepository.saveAndFlush(user);
+
+    mockMvc.perform(put("/api/users/{id}", savedUser.getId())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            {
+              "username": "user2"
+            }
+            """))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value("user2"));
+
+    User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+
+    assertEquals("user2", updatedUser.getUsername());
+  }
+
+  @Test
+  void failToUpdateUserWithInvalidId() throws Exception {
+    assertThrows(Exception.class, () -> mockMvc.perform(put("/api/users/{id}", 9999)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            {
+              "username": "user2"
+            }
+            """)));
+
+    assertEquals(0, userRepository.count());
+  }
+
+  @Test
+  void deleteUser() throws Exception {
+    User user = new User();
+    user.setUsername("user1");
+
+    User savedUser = userRepository.saveAndFlush(user);
+
+    mockMvc.perform(delete("/api/users/{id}", savedUser.getId()))
+        .andExpect(status().isOk());
+
+    assertEquals(0, userRepository.count());
+  }
+
+  @Test
+  void failToDeleteUserThatIsPartOfAProject() throws Exception {
+    User user = new User();
+    user.setUsername("user1");
+    userRepository.saveAndFlush(user);
+
+    Project project = new Project();
+    project.setName("My proj");
+    project.setDescription("foo");
+    project.addUser(user);
+    projectRepository.saveAndFlush(project);
+
+    assertThrows(Exception.class, () -> mockMvc.perform(delete("/api/users/{id}", user.getId())));
+
+    assertEquals(1, userRepository.count());
+  }
+
+  @Test
+  void failToDeleteUserWithInvalidId() throws Exception {
+    assertThrows(Exception.class, () -> mockMvc.perform(delete("/api/users/{id}", 9999)));
+
+    assertEquals(0, userRepository.count());
   }
 
 }
