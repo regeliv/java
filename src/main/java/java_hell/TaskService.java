@@ -2,7 +2,9 @@ package java_hell;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 class TaskService {
@@ -17,7 +19,8 @@ class TaskService {
   }
 
   Task getById(Long id) {
-    return taskRepository.findById(id).orElseThrow();
+    return taskRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
   }
 
   Task createTask(Task task) {
@@ -25,7 +28,8 @@ class TaskService {
   }
 
   Task updateTask(Long id, Task updatedTask) {
-    Task currentTask = taskRepository.findById(id).orElseThrow();
+    Task currentTask = taskRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
 
     currentTask.setTitle(updatedTask.getTitle());
     currentTask.setDescription(updatedTask.getDescription());
@@ -35,10 +39,11 @@ class TaskService {
   }
 
   void deleteTask(Long id) {
-    Task task = taskRepository.findById(id).orElseThrow();
+    Task task = taskRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
 
     if (task.getProject() != null) {
-      throw new IllegalStateException("Cannot delete a task that is part of a project");
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete a task that is part of a project");
     }
 
     taskRepository.delete(task);
