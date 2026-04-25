@@ -10,7 +10,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import jakarta.transaction.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -99,7 +98,8 @@ class TaskControllerTests {
 
   @Test
   void getById() throws Exception {
-    assertThrows(Exception.class, () -> mockMvc.perform(get("/api/tasks/{id}", 9999)));
+    mockMvc.perform(get("/api/tasks/{id}", 9999))
+        .andExpect(status().isNotFound());
 
     Task task = new Task();
     task.setTitle("Task");
@@ -147,7 +147,7 @@ class TaskControllerTests {
 
   @Test
   void failToUpdateTaskWithInvalidId() throws Exception {
-    assertThrows(Exception.class, () -> mockMvc.perform(put("/api/tasks/{id}", 9999)
+    mockMvc.perform(put("/api/tasks/{id}", 9999)
         .contentType(MediaType.APPLICATION_JSON)
         .content("""
             {
@@ -155,7 +155,8 @@ class TaskControllerTests {
               "description": "Bar",
               "priority": "LOW"
             }
-            """)));
+            """))
+        .andExpect(status().isNotFound());
 
     assertEquals(0, taskRepository.count());
   }
@@ -189,14 +190,16 @@ class TaskControllerTests {
     project.addTask(task);
     taskRepository.saveAndFlush(task);
 
-    assertThrows(Exception.class, () -> mockMvc.perform(delete("/api/tasks/{id}", task.getId())));
+    mockMvc.perform(delete("/api/tasks/{id}", task.getId()))
+        .andExpect(status().isConflict());
 
     assertEquals(1, taskRepository.count());
   }
 
   @Test
   void failToDeleteTaskWithInvalidId() throws Exception {
-    assertThrows(Exception.class, () -> mockMvc.perform(delete("/api/tasks/{id}", 9999)));
+    mockMvc.perform(delete("/api/tasks/{id}", 9999))
+        .andExpect(status().isNotFound());
 
     assertEquals(0, taskRepository.count());
   }

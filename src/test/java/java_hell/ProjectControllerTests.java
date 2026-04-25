@@ -10,7 +10,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import jakarta.transaction.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -95,7 +94,8 @@ class ProjectControllerTests {
 
   @Test
   void getById() throws Exception {
-    assertThrows(Exception.class, () -> mockMvc.perform(get("/api/projects/{id}", 9999)));
+    mockMvc.perform(get("/api/projects/{id}", 9999))
+        .andExpect(status().isNotFound());
 
     Project project = new Project();
     project.setName("My proj");
@@ -137,14 +137,15 @@ class ProjectControllerTests {
 
   @Test
   void failToUpdateProjectWithInvalidId() throws Exception {
-    assertThrows(Exception.class, () -> mockMvc.perform(put("/api/projects/{id}", 9999)
+    mockMvc.perform(put("/api/projects/{id}", 9999)
         .contentType(MediaType.APPLICATION_JSON)
         .content("""
             {
               "name": "My proj (but better)",
               "description": "bar"
             }
-            """)));
+            """))
+        .andExpect(status().isNotFound());
 
     assertEquals(0, projectRepository.count());
   }
@@ -189,15 +190,18 @@ class ProjectControllerTests {
     Project savedProjectWithTask = projectRepository.saveAndFlush(projectWithTask);
     taskRepository.saveAndFlush(task);
 
-    assertThrows(Exception.class, () -> mockMvc.perform(delete("/api/projects/{id}", savedProjectWithUser.getId())));
-    assertThrows(Exception.class, () -> mockMvc.perform(delete("/api/projects/{id}", savedProjectWithTask.getId())));
+    mockMvc.perform(delete("/api/projects/{id}", savedProjectWithUser.getId()))
+        .andExpect(status().isConflict());
+    mockMvc.perform(delete("/api/projects/{id}", savedProjectWithTask.getId()))
+        .andExpect(status().isConflict());
 
     assertEquals(2, projectRepository.count());
   }
 
   @Test
   void failToDeleteProjectWithInvalidId() throws Exception {
-    assertThrows(Exception.class, () -> mockMvc.perform(delete("/api/projects/{id}", 9999)));
+    mockMvc.perform(delete("/api/projects/{id}", 9999))
+        .andExpect(status().isNotFound());
 
     assertEquals(0, projectRepository.count());
   }

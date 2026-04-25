@@ -10,7 +10,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import jakarta.transaction.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -107,13 +106,14 @@ class UserControllerTests {
 
   @Test
   void failToUpdateUserWithInvalidId() throws Exception {
-    assertThrows(Exception.class, () -> mockMvc.perform(put("/api/users/{id}", 9999)
+    mockMvc.perform(put("/api/users/{id}", 9999)
         .contentType(MediaType.APPLICATION_JSON)
         .content("""
             {
               "username": "user2"
             }
-            """)));
+            """))
+        .andExpect(status().isNotFound());
 
     assertEquals(0, userRepository.count());
   }
@@ -143,21 +143,24 @@ class UserControllerTests {
     project.addUser(user);
     projectRepository.saveAndFlush(project);
 
-    assertThrows(Exception.class, () -> mockMvc.perform(delete("/api/users/{id}", user.getId())));
+    mockMvc.perform(delete("/api/users/{id}", user.getId()))
+        .andExpect(status().isConflict());
 
     assertEquals(1, userRepository.count());
   }
 
   @Test
   void failToDeleteUserWithInvalidId() throws Exception {
-    assertThrows(Exception.class, () -> mockMvc.perform(delete("/api/users/{id}", 9999)));
+    mockMvc.perform(delete("/api/users/{id}", 9999))
+        .andExpect(status().isNotFound());
 
     assertEquals(0, userRepository.count());
   }
 
   @Test
   void getById() throws Exception {
-    assertThrows(Exception.class, () -> mockMvc.perform(get("/api/users/{id}", 9999)));
+    mockMvc.perform(get("/api/users/{id}", 9999))
+        .andExpect(status().isNotFound());
 
     User user = new User();
     user.setUsername("my_user");

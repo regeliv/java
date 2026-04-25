@@ -2,7 +2,9 @@ package java_hell;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 class UserService {
@@ -17,7 +19,8 @@ class UserService {
   }
 
   User getById(Long id) {
-    return userRepository.findById(id).orElseThrow();
+    return userRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
   }
 
   User createUser(User user) {
@@ -25,7 +28,8 @@ class UserService {
   }
 
   User updateUser(Long id, User updatedUser) {
-    User currentUser = userRepository.findById(id).orElseThrow();
+    User currentUser = userRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
     currentUser.setUsername(updatedUser.getUsername());
 
@@ -33,10 +37,11 @@ class UserService {
   }
 
   void deleteUser(Long id) {
-    User user = userRepository.findById(id).orElseThrow();
+    User user = userRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
     if (user.getProjects().size() != 0) {
-      throw new IllegalStateException("Cannot delete a user if they are part of a project");
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete a user if they are part of a project");
     }
 
     userRepository.delete(user);
