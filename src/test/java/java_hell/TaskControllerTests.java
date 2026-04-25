@@ -98,6 +98,24 @@ class TaskControllerTests {
   }
 
   @Test
+  void getById() throws Exception {
+    assertThrows(Exception.class, () -> mockMvc.perform(get("/api/tasks/{id}", 9999)));
+
+    Task task = new Task();
+    task.setTitle("Task");
+    task.setDescription("Foo");
+    task.setPriority(TaskPriority.HIGH);
+    task = taskRepository.saveAndFlush(task);
+
+    mockMvc.perform(get("/api/tasks/{id}", task.getId()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.title").value(task.getTitle()))
+        .andExpect(jsonPath("$.description").value(task.getDescription()))
+        .andExpect(jsonPath("$.priority").value(task.getPriority().name()))
+        .andExpect(jsonPath("$.id").value(task.getId()));
+  }
+
+  @Test
   void updateTask() throws Exception {
     Task task = new Task();
     task.setTitle("Task");

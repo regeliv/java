@@ -94,6 +94,22 @@ class ProjectControllerTests {
   }
 
   @Test
+  void getById() throws Exception {
+    assertThrows(Exception.class, () -> mockMvc.perform(get("/api/projects/{id}", 9999)));
+
+    Project project = new Project();
+    project.setName("My proj");
+    project.setDescription("foo");
+    project = projectRepository.saveAndFlush(project);
+
+    mockMvc.perform(get("/api/projects/{id}", project.getId()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value(project.getName()))
+        .andExpect(jsonPath("$.description").value(project.getDescription()))
+        .andExpect(jsonPath("$.id").value(project.getId()));
+  }
+
+  @Test
   void updateProject() throws Exception {
     Project project = new Project();
     project.setName("My proj");

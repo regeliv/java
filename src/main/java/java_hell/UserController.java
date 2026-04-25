@@ -32,6 +32,12 @@ class UserController {
     return userService.all();
   }
 
+  @GetMapping("/{id}")
+  @Operation(summary = "Return the user with the specified id")
+  User getById(@Parameter(description = "ID of an existing user", example = "1") @PathVariable Long id) {
+    return userService.getById(id);
+  }
+
   @PostMapping
   @Operation(summary = "Add a user to the database")
   User createUser(@Valid @RequestBody User user) {

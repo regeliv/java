@@ -16,6 +16,10 @@ class ProjectService {
     return projectRepository.findAll();
   }
 
+  Project getById(Long id) {
+    return projectRepository.findById(id).orElseThrow();
+  }
+
   Project createProject(Project project) {
     return projectRepository.save(project);
   }
