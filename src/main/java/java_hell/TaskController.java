@@ -32,6 +32,12 @@ class TaskController {
     return taskService.all();
   }
 
+  @GetMapping("/{id}")
+  @Operation(summary = "Return the task with the specified id")
+  Task getById(@Parameter(description = "ID of an existing task", example = "1") @PathVariable Long id) {
+    return taskService.getById(id);
+  }
+
   @PostMapping
   @Operation(summary = "Add a task to the database")
   Task createTask(@Valid @RequestBody Task task) {

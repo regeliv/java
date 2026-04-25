@@ -32,6 +32,12 @@ class ProjectController {
     return projectService.all();
   }
 
+  @GetMapping("/{id}")
+  @Operation(summary = "Return the project with the specified id")
+  Project getById(@Parameter(description = "ID of an existing project", example = "1") @PathVariable Long id) {
+    return projectService.getById(id);
+  }
+
   @PostMapping
   @Operation(summary = "Add a project to the database")
   Project createProject(@Valid @RequestBody Project project) {

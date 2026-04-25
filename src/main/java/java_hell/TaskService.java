@@ -16,6 +16,10 @@ class TaskService {
     return taskRepository.findAll();
   }
 
+  Task getById(Long id) {
+    return taskRepository.findById(id).orElseThrow();
+  }
+
   Task createTask(Task task) {
     return taskRepository.save(task);
   }

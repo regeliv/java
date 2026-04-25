@@ -155,4 +155,18 @@ class UserControllerTests {
     assertEquals(0, userRepository.count());
   }
 
+  @Test
+  void getById() throws Exception {
+    assertThrows(Exception.class, () -> mockMvc.perform(get("/api/users/{id}", 9999)));
+
+    User user = new User();
+    user.setUsername("my_user");
+    user = userRepository.saveAndFlush(user);
+
+    mockMvc.perform(get("/api/users/{id}", user.getId()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value(user.getUsername()))
+        .andExpect(jsonPath("$.id").value(user.getId()));
+  }
+
 }
