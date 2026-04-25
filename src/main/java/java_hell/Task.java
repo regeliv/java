@@ -1,5 +1,7 @@
 package java_hell;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,6 +40,7 @@ class Task {
 
   @Getter
   @ManyToOne
+  @JsonIgnore
   private Project project;
 
   void setProjectInternal(Project project) {
