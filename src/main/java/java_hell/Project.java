@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.JoinColumn;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,6 +34,9 @@ class Project {
   @JoinTable(name = "project_users", joinColumns = @JoinColumn(name = "project_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
   private Set<User> users = new HashSet<>();
 
+  @OneToMany(mappedBy = "project")
+  private Set<Task> tasks = new HashSet<>();
+
   public void addUser(User user) {
     users.add(user);
     user.addProjectInternal(this);
@@ -41,10 +45,35 @@ class Project {
   public void removeUser(User user) {
     users.remove(user);
     user.removeProjectInternal(this);
+  }
 
+  public void addTask(Task task) {
+    if (task == null) {
+      throw new IllegalArgumentException("Cannot add null task");
+    }
+
+    if (task.getProject() != null) {
+      task.getProject().removeTask(task);
+    }
+
+    tasks.add(task);
+    task.setProjectInternal(this);
+  }
+
+  public void removeTask(Task task) {
+    if (!tasks.remove(task)) {
+      throw new IllegalArgumentException("The task is not part of the project");
+    }
+
+    task.setProjectInternal(null);
   }
 
   public Set<User> getUsers() {
     return Collections.unmodifiableSet(users);
   }
+
+  public Set<Task> getTasks() {
+    return Collections.unmodifiableSet(tasks);
+  }
+
 }
