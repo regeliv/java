@@ -16,21 +16,21 @@ import jakarta.validation.Valid;
 @Tag(name = "Projects")
 @RequestMapping("/api/projects")
 class ProjectController {
-  private final ProjectRepository projectRepository;
+  private final ProjectService projectService;
 
-  ProjectController(ProjectRepository projectRepository) {
-    this.projectRepository = projectRepository;
+  ProjectController(ProjectService projectService) {
+    this.projectService = projectService;
   }
 
   @GetMapping
   @Operation(summary = "Return a list of all projects in the database")
   List<Project> all() {
-    return projectRepository.findAll();
+    return projectService.all();
   }
 
   @PostMapping
   @Operation(summary = "Add a project to the database")
   Project createProject(@Valid @RequestBody Project project) {
-    return projectRepository.save(project);
+    return projectService.createProject(project);
   }
 }

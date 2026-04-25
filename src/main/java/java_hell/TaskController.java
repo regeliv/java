@@ -16,21 +16,21 @@ import jakarta.validation.Valid;
 @Tag(name = "Tasks")
 @RequestMapping("/api/tasks")
 class TaskController {
-  private final TaskRepository taskRepository;
+  private final TaskService taskService;
 
-  TaskController(TaskRepository taskRepository) {
-    this.taskRepository = taskRepository;
+  TaskController(TaskService taskService) {
+    this.taskService = taskService;
   }
 
   @GetMapping
   @Operation(summary = "Return a list of all tasks in the database")
   List<Task> all() {
-    return taskRepository.findAll();
+    return taskService.all();
   }
 
   @PostMapping
   @Operation(summary = "Add a task to the database")
   Task createTask(@Valid @RequestBody Task task) {
-    return taskRepository.save(task);
+    return taskService.createTask(task);
   }
 }
