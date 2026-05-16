@@ -19,7 +19,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
-class ProjectFlowIT {
+class TaskFlowIT {
   @Container
   @ServiceConnection
   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
@@ -28,28 +28,31 @@ class ProjectFlowIT {
   MockMvc mockMvc;
 
   @Test
-  void projectFlow() throws Exception {
-    String projectResponse = mockMvc.perform(post("/api/projects")
+  void taskFlow() throws Exception {
+    String taskResponse = mockMvc.perform(post("/api/tasks")
         .contentType(MediaType.APPLICATION_JSON)
         .content("""
             {
-              "name": "Integration project",
-              "description": "foo"
+              "title": "Integration task",
+              "description": "foo",
+              "priority": "HIGH"
             }
             """))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("Integration project"))
+        .andExpect(jsonPath("$.title").value("Integration task"))
         .andExpect(jsonPath("$.description").value("foo"))
+        .andExpect(jsonPath("$.priority").value("HIGH"))
         .andReturn()
         .getResponse()
         .getContentAsString();
 
-    Number projectId = com.jayway.jsonpath.JsonPath.read(projectResponse, "$.id");
+    Number taskId = com.jayway.jsonpath.JsonPath.read(taskResponse, "$.id");
 
-    mockMvc.perform(get("/api/projects/{id}", projectId.longValue()))
+    mockMvc.perform(get("/api/tasks/{id}", taskId.longValue()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(projectId.longValue()))
-        .andExpect(jsonPath("$.name").value("Integration project"))
-        .andExpect(jsonPath("$.description").value("foo"));
+        .andExpect(jsonPath("$.id").value(taskId.longValue()))
+        .andExpect(jsonPath("$.title").value("Integration task"))
+        .andExpect(jsonPath("$.description").value("foo"))
+        .andExpect(jsonPath("$.priority").value("HIGH"));
   }
 }

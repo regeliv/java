@@ -19,7 +19,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
-class ProjectFlowIT {
+class UserFlowIT {
   @Container
   @ServiceConnection
   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
@@ -28,28 +28,25 @@ class ProjectFlowIT {
   MockMvc mockMvc;
 
   @Test
-  void projectFlow() throws Exception {
-    String projectResponse = mockMvc.perform(post("/api/projects")
+  void userFlow() throws Exception {
+    String userResponse = mockMvc.perform(post("/api/users")
         .contentType(MediaType.APPLICATION_JSON)
         .content("""
             {
-              "name": "Integration project",
-              "description": "foo"
+              "username": "integration-user"
             }
             """))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("Integration project"))
-        .andExpect(jsonPath("$.description").value("foo"))
+        .andExpect(jsonPath("$.username").value("integration-user"))
         .andReturn()
         .getResponse()
         .getContentAsString();
 
-    Number projectId = com.jayway.jsonpath.JsonPath.read(projectResponse, "$.id");
+    Number userId = com.jayway.jsonpath.JsonPath.read(userResponse, "$.id");
 
-    mockMvc.perform(get("/api/projects/{id}", projectId.longValue()))
+    mockMvc.perform(get("/api/users/{id}", userId.longValue()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(projectId.longValue()))
-        .andExpect(jsonPath("$.name").value("Integration project"))
-        .andExpect(jsonPath("$.description").value("foo"));
+        .andExpect(jsonPath("$.id").value(userId.longValue()))
+        .andExpect(jsonPath("$.username").value("integration-user"));
   }
 }
