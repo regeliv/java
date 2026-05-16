@@ -29,11 +29,21 @@
           pkgs.maven
           jdtlsJava25
           pkgs.postgresql
+          pkgs.podman
         ];
 
         shellHook = ''
           export PGDATA=$PWD/.postgres
           export PGHOST=$PGDATA
+          export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
+          export TESTCONTAINERS_RYUK_DISABLED=true
+
+          systemctl --user start podman.socket || true
+
+          if [ ! -S "$XDG_RUNTIME_DIR/podman/podman.sock" ]; then
+            echo "Podman socket not found at $XDG_RUNTIME_DIR/podman/podman.sock"
+            echo "Run: systemctl --user enable --now podman.socket"
+          fi
 
           if [ ! -d "$PGDATA" ]; then
             initdb --no-locale --encoding=UTF8
