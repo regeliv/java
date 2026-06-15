@@ -1,7 +1,10 @@
 package java_hell;
 
+import static org.hamcrest.Matchers.hasItem;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,7 +31,7 @@ class TaskFlowIT {
   MockMvc mockMvc;
 
   @Test
-  void taskFlow() throws Exception {
+  void createTask() throws Exception {
     String taskResponse = mockMvc.perform(post("/api/tasks")
         .contentType(MediaType.APPLICATION_JSON)
         .content("""
@@ -54,5 +57,54 @@ class TaskFlowIT {
         .andExpect(jsonPath("$.title").value("Integration task"))
         .andExpect(jsonPath("$.description").value("foo"))
         .andExpect(jsonPath("$.priority").value("HIGH"));
+
+    mockMvc.perform(get("/api/tasks"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[*].id", hasItem(taskId.intValue())));
+  }
+
+  @Test
+  void updateTask() throws Exception {
+    String response = mockMvc.perform(post("/api/tasks")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            { "title": "Original", "description": "old", "priority": "LOW" }
+            """))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+    Number id = com.jayway.jsonpath.JsonPath.read(response, "$.id");
+
+    mockMvc.perform(put("/api/tasks/{id}", id.longValue())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            { "title": "Updated", "description": "new", "priority": "HIGH" }
+            """))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.title").value("Updated"))
+        .andExpect(jsonPath("$.description").value("new"))
+        .andExpect(jsonPath("$.priority").value("HIGH"));
+
+    mockMvc.perform(get("/api/tasks/{id}", id.longValue()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.title").value("Updated"))
+        .andExpect(jsonPath("$.priority").value("HIGH"));
+  }
+
+  @Test
+  void deleteTask() throws Exception {
+    String response = mockMvc.perform(post("/api/tasks")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            { "title": "To delete", "description": "foo", "priority": "MEDIUM" }
+            """))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+    Number id = com.jayway.jsonpath.JsonPath.read(response, "$.id");
+
+    mockMvc.perform(delete("/api/tasks/{id}", id.longValue()))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(get("/api/tasks/{id}", id.longValue()))
+        .andExpect(status().isNotFound());
   }
 }

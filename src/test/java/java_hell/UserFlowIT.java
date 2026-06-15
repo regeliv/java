@@ -1,7 +1,10 @@
 package java_hell;
 
+import static org.hamcrest.Matchers.hasItem;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,7 +31,7 @@ class UserFlowIT {
   MockMvc mockMvc;
 
   @Test
-  void userFlow() throws Exception {
+  void createUser() throws Exception {
     String userResponse = mockMvc.perform(post("/api/users")
         .contentType(MediaType.APPLICATION_JSON)
         .content("""
@@ -48,5 +51,51 @@ class UserFlowIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(userId.longValue()))
         .andExpect(jsonPath("$.username").value("integration-user"));
+
+    mockMvc.perform(get("/api/users"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[*].id", hasItem(userId.intValue())));
+  }
+
+  @Test
+  void updateUser() throws Exception {
+    String response = mockMvc.perform(post("/api/users")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            { "username": "original-user" }
+            """))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+    Number id = com.jayway.jsonpath.JsonPath.read(response, "$.id");
+
+    mockMvc.perform(put("/api/users/{id}", id.longValue())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            { "username": "updated-user" }
+            """))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value("updated-user"));
+
+    mockMvc.perform(get("/api/users/{id}", id.longValue()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value("updated-user"));
+  }
+
+  @Test
+  void deleteUser() throws Exception {
+    String response = mockMvc.perform(post("/api/users")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            { "username": "to-delete" }
+            """))
+        .andExpect(status().isOk())
+        .andReturn().getResponse().getContentAsString();
+    Number id = com.jayway.jsonpath.JsonPath.read(response, "$.id");
+
+    mockMvc.perform(delete("/api/users/{id}", id.longValue()))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(get("/api/users/{id}", id.longValue()))
+        .andExpect(status().isNotFound());
   }
 }
