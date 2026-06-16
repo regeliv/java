@@ -1,5 +1,6 @@
 .direnv/
 .postgres/
+.env
 logfile
 target/
 .classpath
